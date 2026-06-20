@@ -28,7 +28,8 @@ created.
 package game
 
 import "core:fmt"
-import "core:math/linalg"
+//import "core:math/linalg"
+import "core:math"
 import rl "vendor:raylib"
 
 PIXEL_WINDOW_HEIGHT :: 180
@@ -37,15 +38,19 @@ Jug :: struct {
 	pos: rl.Vector2,
 	texture: rl.Texture,
 	size: int,
-	start: int,
+	start_fill: int,
+	cur_fill: int,
 }
 
 Game_Memory :: struct {
-	jugs := [2]Jug
-	jug1_pos: rl.Vector2,
-	jug5_pos: rl.Vector2,
-	jug1_texture: rl.Texture,
-	jug5_texture: rl.Texture,
+	jug_1 : Jug, 
+	jug_2 : Jug,
+	font_1: rl.Font,
+	//jugs := [2]Jug
+	//jug1_pos: rl.Vector2,
+	//jug5_pos: rl.Vector2,
+	//jug1_texture: rl.Texture,
+	//jug5_texture: rl.Texture,
 	
 	run: bool,
 }
@@ -58,7 +63,7 @@ game_camera :: proc() -> rl.Camera2D {
 
 	return {
 		zoom = h/PIXEL_WINDOW_HEIGHT,
-		target = g.jug5_pos,
+		target = { 0 , 0 },
 		offset = { w/2, h/2 },
 	}
 }
@@ -70,9 +75,10 @@ ui_camera :: proc() -> rl.Camera2D {
 }
 
 update :: proc() {
+	/*
 	input: rl.Vector2
 	//if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) ballColor = MAROON;
-	/*
+	
 	if rl.IsKeyDown(.UP) || rl.IsKeyDown(.W) {
 		input.y -= 1
 	}
@@ -85,9 +91,10 @@ update :: proc() {
 	if rl.IsKeyDown(.RIGHT) || rl.IsKeyDown(.D) {
 		input.x += 1
 	}
-	*/
+	
 	input = linalg.normalize0(input)
-	g.jug1_pos += input * rl.GetFrameTime() * 100
+	g.jug_1.pos += input * rl.GetFrameTime() * 100
+	*/
 
 	if rl.IsKeyPressed(.ESCAPE) {
 		g.run = false
@@ -99,8 +106,11 @@ draw :: proc() {
 	rl.ClearBackground(rl.WHITE)
 
 	rl.BeginMode2D(game_camera())
-	rl.DrawTextureEx(g.jug1_texture, g.jug1_pos, 0, 2, rl.WHITE)
-	rl.DrawTextureEx(g.jug5_texture, g.jug5_pos, 0, 1, rl.WHITE)
+	rl.DrawTextureEx(g.jug_1.texture, g.jug_1.pos, 0, math.sqrt(f32(g.jug_1.size)), rl.WHITE)
+	rl.DrawText(fmt.ctprintf("%v/%v pints", g.jug_1.cur_fill, g.jug_1.size), i32(g.jug_1.pos.x), i32(g.jug_1.pos.y)+i32(g.jug_1.texture.height)*i32(math.sqrt(f32(g.jug_1.size))), 12, rl.BLACK)
+	rl.DrawTextureEx(g.jug_2.texture, g.jug_2.pos, 0, math.sqrt(f32(g.jug_2.size)), rl.WHITE)
+	rl.DrawText(fmt.ctprintf("%v/%v pints", g.jug_2.cur_fill, g.jug_2.size), i32(g.jug_2.pos.x), i32(g.jug_2.pos.y)+i32(g.jug_2.texture.height)*i32(math.sqrt(f32(g.jug_1.size))), 12, rl.BLACK)
+	//rl.DrawTextureEx(g.jug5_texture, g.jug5_pos, 0, 1, rl.WHITE)
 	//rl.DrawTextureEx(g.jug1_texture, (Vector2){ 100, 100 }, 0.0f, 2.0f, WHITE)
 	//rl.DrawRectangleV({20, 20}, {10, 10}, rl.RED)
 	//rl.DrawRectangleV({-30, -20}, {10, 10}, rl.GREEN)
@@ -113,7 +123,7 @@ draw :: proc() {
 	// `main_hot_reload.odin`, `main_release.odin` or `main_web_entry.odin`.
 	// rl.DrawText(fmt.ctprintf("some_number: %v\nplayer_pos: %v", g.some_number, g.player_pos), 5, 5, 8, rl.BLACK)
 
-	rl.DrawText(fmt.ctprintf("measure 4 pints exactly"), 5, 5, 12, rl.BLACK)
+	rl.DrawTextEx(g.font_1, fmt.ctprintf("measure 4 pints exactly"), (rl.Vector2){5, 5}, 12, 2, rl.BLACK)
 
 	rl.EndMode2D()
 
@@ -147,8 +157,22 @@ game_init :: proc() {
 		
 		// You can put textures, sounds and music in the `assets` folder. Those
 		// files will be part any release or web build.
-		jug1_texture = rl.LoadTexture("assets/jug1.png"),
-		jug5_texture = rl.LoadTexture("assets/jug5.png"),
+		jug_1 = {pos = rl.Vector2{-50, 0}, texture = rl.LoadTexture("assets/jug1.png"), size = 5, start_fill = 0, cur_fill = 0},
+		jug_2 = {pos = rl.Vector2{10, 0}, texture = rl.LoadTexture("assets/jug1.png"), size = 3, start_fill = 0, cur_fill = 0},
+		//jug1_texture = rl.LoadTexture("assets/jug1.png"),
+		//jug5_texture = rl.LoadTexture("assets/jug5.png"),
+		font_1 = rl.LoadFont("assets/determination.ttf"),
+		/*
+		fonts[0] = LoadFont("resources/sprite_fonts/alagard.png");
+    	fonts[1] = LoadFont("resources/sprite_fonts/pixelplay.png");
+    	fonts[2] = LoadFont("resources/sprite_fonts/mecha.png");
+    	fonts[3] = LoadFont("resources/sprite_fonts/setback.png");
+    	fonts[4] = LoadFont("resources/sprite_fonts/romulus.png");
+    	fonts[5] = LoadFont("resources/sprite_fonts/pixantiqua.png");
+    	fonts[6] = LoadFont("resources/sprite_fonts/alpha_beta.png");
+    	fonts[7] = LoadFont("resources/sprite_fonts/jupiter_crash.png");
+		*/
+
 	}
 
 	game_hot_reloaded(g)
